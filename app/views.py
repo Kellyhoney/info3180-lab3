@@ -1,5 +1,8 @@
 from app import app
 from flask import render_template, request, redirect, url_for, flash
+from .forms import ContactForm  
+from flask_mail import Message
+from app import mail
 
 
 ###
@@ -15,15 +18,55 @@ def home():
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html', name="Mary Jane") 
 
+
+
+
+
+from app import app, mail
+from flask import render_template, request, redirect, url_for, flash
+from .forms import ContactForm
+from flask_mail import Message
+
+from flask import render_template, request, redirect, url_for, flash
+from flask_mail import Message
+from app import app, mail
+from .forms import ContactForm  # Import ContactForm
+
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    form = ContactForm()  # Instantiate the form
+
+    if form.validate_on_submit():  # Validate form data
+        # Retrieve form data
+        name = form.name.data
+        email = form.email.data
+        subject = form.subject.data
+        message = form.message.data
+
+        # Create email message
+        msg = Message(
+            subject=subject,
+            sender=(name, email), 
+            recipients=["shantaykellyman@gmail.com"],  #
+            body=f"From: {name} <{email}>\n\n{message}"
+        )
+
+        try:
+            mail.send(msg)  # Send the email
+            flash("Your message has been sent successfully!", "success")
+            return redirect(url_for("home"))  
+        except Exception as e:
+            flash(f"Error sending email: {str(e)}", "danger")
+
+    return render_template("contact.html", form=form)  
 
 ###
 # The functions below should be applicable to all Flask apps.
 ###
 
 
-# Flash errors from the form if validation fails
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
@@ -37,7 +80,10 @@ def flash_errors(form):
 def send_text_file(file_name):
     """Send your static text file."""
     file_dot_text = file_name + '.txt'
-    return app.send_static_file(file_dot_text)
+    return app.send_static_file(file_dot_text) 
+
+
+
 
 
 @app.after_request
